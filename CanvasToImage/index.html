@@ -1,0 +1,179 @@
+<!doctype html>
+<html>
+
+<head>
+  <meta charset="utf-8" />
+  <script src="CanvasToImage.js"></script>
+  <style>
+    .doc {
+      width: 400px;
+      margin: 0 auto;
+    }
+    #cvs {
+      display: block;
+      margin-bottom: 20px;
+      cursor: crosshair;
+    }
+    .btn {
+      display: inline-block;
+      vertical-align: middle;
+      color: rgb(255, 255, 255);
+      background-color: rgb(233, 104, 107);
+      text-align: center;
+      cursor: pointer;
+      white-space: nowrap;
+      box-shadow: rgba(0, 0, 0, 0.12) 0px 2px 6px, rgba(0, 0, 0, 0.24) 0px 1px 2px;
+      font-family: 微软雅黑;
+      border-width: initial;
+      border-style: none;
+      border-color: initial;
+      border-image: initial;
+      outline: 0px;
+      padding: 8px 18px;
+      overflow: hidden;
+      text-decoration: none;
+      transition: 0.2s ease-out;
+      border-radius: 2px;
+    }
+
+    label {
+      display: inline-block;
+      width: 80px;
+    }
+
+    input, select, textarea {
+      /* width: 100%; */
+      font-family: inherit;
+      font-size: 15px;
+      height: 33px;
+      outline: 0;
+      vertical-align: middle;
+      background-color: #fff;
+      border: 1px solid #d4d4d4;
+      border-radius: 3px;
+      box-shadow: none;
+      padding: 0 12px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="doc">
+    <canvas id="cvs" width="400" height="300"></canvas>
+    <div>
+      <p>
+        <label>Width :</label>
+        <input type="number" value="300" id="imgW" />
+      </p>
+      <p>
+        <label>Height :</label>
+        <input type="number" value="200" id="imgH" />
+      </p>
+      <p>
+        <label>FileName:</label>
+        <input type="text" placeholder="fileName" id="imgFileName">
+      </p>
+      <button id="convert" class="btn">Convert to</button>
+      <select id="sel">
+        <option value="png">png</option>
+        <option value="jpeg">jpeg</option>
+        <option value="bmp">bmp</option>
+      </select>
+      <button id="save" class="btn">Save</button>
+    </div>
+    <div id="imgs"></div>
+  </div>
+  <script>
+    //加载
+    window.onload = init;
+    
+    //定义变量
+    var canvas,
+      ctx,
+      bMouseIsDown = false,
+      iLastX,
+      iLastY,
+      $save,
+      $imgs,
+      $convert,
+      $imgW,
+      $imgH,
+      $sel;
+
+    //初始化
+    function init() {
+      canvas = document.getElementById('cvs');
+      ctx = canvas.getContext('2d');
+      $save = document.getElementById('save');
+      $convert = document.getElementById('convert');
+      $sel = document.getElementById('sel');
+      $imgs = document.getElementById('imgs');
+      $imgW = document.getElementById('imgW');
+      $imgH = document.getElementById('imgH');
+      $imgFileName = document.getElementById('imgFileName');
+      draw();
+      bind();
+    }
+
+    //绘制画布
+    function draw() {
+      if (canvas == null) {
+        return false;
+      }
+      var context = canvas.getContext('2d');
+      context.fillStyle = "#eeeeff";
+      context.fillRect(0, 0, 400, 300);
+      var n = 0;
+      for (var index = 0; index < 10; index++) {
+        context.beginPath();
+        context.arc(index * 25, index * 25, index * 10, 0, Math.PI * 2, true);
+        context.closePath();
+        context.fillStyle = 'rgba(255,0,0,0.25)';
+        context.fill();
+      }
+
+      //画板
+      canvas.onmousedown = function (e) {
+        bMouseIsDown = true;
+        iLastX = e.clientX - canvas.offsetLeft + (window.pageXOffset || document.body.scrollLeft || document.documentElement.scrollLeft);
+        iLastY = e.clientY - canvas.offsetTop + (window.pageYOffset || document.body.scrollTop || document.documentElement.scrollTop);
+      }
+      canvas.onmouseup = function () {
+        bMouseIsDown = false;
+        iLastX = -1;
+        iLastY = -1;
+      }
+      canvas.onmousemove = function (e) {
+        if (bMouseIsDown) {
+          var iX = e.clientX - canvas.offsetLeft + (window.pageXOffset || document.body.scrollLeft || document.documentElement.scrollLeft);
+          var iY = e.clientY - canvas.offsetTop + (window.pageYOffset || document.body.scrollTop || document.documentElement.scrollTop);
+          ctx.moveTo(iLastX, iLastY);
+          ctx.lineTo(iX, iY);
+          ctx.stroke();
+          iLastX = iX;
+          iLastY = iY;
+        }
+      };
+    }
+
+    //图片转换
+    function bind() {
+      $save.onclick = function (e) {
+        var type = $sel.value,
+          w = $imgW.value,
+          h = $imgH.value,
+          f = $imgFileName.value;
+        CanvasToImage.saveAsImage(canvas, w, h, type, f);
+      }
+      $convert.onclick = function (e) {
+        var type = $sel.value,
+          w = $imgW.value,
+          h = $imgH.value;
+        $imgs.appendChild(CanvasToImage.convertToImage(canvas, w, h, type))
+      }
+    }
+
+  </script>
+</body>
+
+</html>
